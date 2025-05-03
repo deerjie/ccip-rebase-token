@@ -1,0 +1,1 @@
+install:;forge install smartcontractkit/ccip@v2.17.0 --no-commit
