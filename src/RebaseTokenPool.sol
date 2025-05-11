@@ -9,17 +9,17 @@ import {IRebaseToken} from "./interfaces/IRebaseToken.sol";
 
 contract RebaseTokenPool is TokenPool {
     constructor(IERC20 token, address[] memory allowlist, address rmnProxy, address router)
-        TokenPool(token, allowlist, rmnProxy, router)
+        TokenPool(token, 18, allowlist, rmnProxy, router)
     {}
 
-    /// @notice 在源链上燃烧代币
+    /// @notice burns the tokens on the source chain
     function lockOrBurn(Pool.LockOrBurnInV1 calldata lockOrBurnIn)
         external
         virtual
         override
         returns (Pool.LockOrBurnOutV1 memory lockOrBurnOut)
     {
-        _validateLockOrBurn(lockOrBurnIn);// 做基本检查
+        _validateLockOrBurn(lockOrBurnIn);
         // Burn the tokens on the source chain. This returns their userAccumulatedInterest before the tokens were burned (in case all tokens were burned, we don't want to send 0 cross-chain)
         uint256 userInterestRate = IRebaseToken(address(i_token)).getUserInterestRate(lockOrBurnIn.originalSender);
         //uint256 currentInterestRate = IRebaseToken(address(i_token)).getInterestRate();

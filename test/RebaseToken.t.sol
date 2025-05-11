@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {console2} from "forge-std/console2.sol";
+import {console, Test} from "forge-std/Test.sol";
+
 import {RebaseToken} from "../src/RebaseToken.sol";
 import {Vault} from "../src/Vault.sol";
 
-import {IRebaseToken} from "../src/interface/IRebaseToken.sol";
+import {IRebaseToken} from "../src/interfaces/IRebaseToken.sol";
 
 contract RebaseTokenTest is Test {
     RebaseToken public rebaseToken;
@@ -18,10 +18,7 @@ contract RebaseTokenTest is Test {
 
     function addRewardsToVault(uint256 amount) public {
         // send some rewards to the vault using the receive function
-        (bool success,) = payable(address(vault)).call{value: amount}("");
-        if(!success) {
-            revert("Failed to send rewards to vault");
-        }
+        payable(address(vault)).call{value: amount}("");
     }
 
     function setUp() public {
@@ -33,28 +30,28 @@ contract RebaseTokenTest is Test {
     }
 
     function testDepositLinear(uint256 amount) public {
-        // 将amount大小限制在1e5到2^96-1之间
+        // Deposit funds
         amount = bound(amount, 1e5, type(uint96).max);
         // 1. deposit
-        vm.startPrank(user);// 模拟用户
-        vm.deal(user, amount); // 模拟账户余额
+        vm.startPrank(user);
+        vm.deal(user, amount);
         vault.deposit{value: amount}();
         // 2. check our rebase token balance
         uint256 startBalance = rebaseToken.balanceOf(user);
-        console2.log("block.timestamp", block.timestamp);
-        console2.log("startBalance", startBalance);
+        console.log("block.timestamp", block.timestamp);
+        console.log("startBalance", startBalance);
         assertEq(startBalance, amount);
         // 3. warp the time and check the balance again
         vm.warp(block.timestamp + 1 hours);
-        console2.log("block.timestamp", block.timestamp);
+        console.log("block.timestamp", block.timestamp);
         uint256 middleBalance = rebaseToken.balanceOf(user);
-        console2.log("middleBalance", middleBalance);
+        console.log("middleBalance", middleBalance);
         assertGt(middleBalance, startBalance);
         // 4. warp the time again by the same amount and check the balance again
         vm.warp(block.timestamp + 1 hours);
         uint256 endBalance = rebaseToken.balanceOf(user);
-        console2.log("block.timestamp", block.timestamp);
-        console2.log("endBalance", endBalance);
+        console.log("block.timestamp", block.timestamp);
+        console.log("endBalance", endBalance);
         assertGt(endBalance, middleBalance);
 
         assertApproxEqAbs(endBalance - middleBalance, middleBalance - startBalance, 1);
@@ -73,7 +70,7 @@ contract RebaseTokenTest is Test {
         vault.redeem(amount);
 
         uint256 balance = rebaseToken.balanceOf(user);
-        console2.log("User balance: %d", balance);
+        console.log("User balance: %d", balance);
         assertEq(balance, 0);
         vm.stopPrank();
     }
